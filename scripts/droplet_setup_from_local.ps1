@@ -46,5 +46,7 @@ $remoteCmd += " bash -s"
 $target = "${User}@${DropletHost}"
 
 Write-Host "Running droplet_setup.sh on ${target} (profile ${ComposeProfile})..." -ForegroundColor Cyan
-Get-Content -LiteralPath $scriptPath -Raw | ssh -T $target "$remoteCmd"
+# Strip Windows CRLF so remote bash does not see $'\r' (breaks set -euo pipefail).
+$scriptBody = (Get-Content -LiteralPath $scriptPath -Raw) -replace "`r`n", "`n" -replace "`r", "`n"
+$scriptBody | ssh -T $target "$remoteCmd"
 Write-Host "Finished." -ForegroundColor Green
