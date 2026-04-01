@@ -127,6 +127,12 @@ if [[ "${FT_SKIP_COMPOSE}" == "1" ]]; then
   exit 0
 fi
 
+# Official image runs as UID 1000 (ftuser). Host-owned user_data/logs causes logging to fail and crash loop.
+if [[ -d user_data ]]; then
+  echo "[droplet_setup] chown -R 1000:1000 user_data (ftuser in container)"
+  chown -R 1000:1000 user_data || true
+fi
+
 echo "[droplet_setup] docker compose --profile ${FT_COMPOSE_PROFILE} pull && up -d"
 docker compose --profile "${FT_COMPOSE_PROFILE}" pull
 docker compose --profile "${FT_COMPOSE_PROFILE}" up -d

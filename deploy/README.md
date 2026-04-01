@@ -36,6 +36,17 @@ Environment variables: `FT_COMPOSE_PROFILE`, `FT_REPO_URL`, `FT_INSTALL_DIR`, `F
 
 After any automated run, still **add Binance keys** and confirm **`dry_run`** before live trading.
 
+### `ERR_EMPTY_RESPONSE` / UI won’t load (containers restarting)
+
+The Freqtrade image runs as **UID 1000** (`ftuser`). If **`user_data`** on the host is owned by **root**, log files cannot be created and the bot **exits** (`Unable to configure handler 'file'`). Fix on the Droplet:
+
+```bash
+chown -R 1000:1000 /root/freqtrade-coint-pairs-trading/user_data
+cd /root/freqtrade-coint-pairs-trading && docker compose --profile v01 up -d --force-recreate
+```
+
+(Use `--profile v02` on the V02 Droplet.) Newer **`scripts/droplet_setup.sh`** runs this `chown` automatically before `docker compose up`.
+
 ### Private GitHub repo / `could not read Username for 'https://github.com'`
 
 HTTPS clone on a Droplet **cannot** open a login prompt. If the repo is **private**, either:
