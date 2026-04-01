@@ -73,7 +73,30 @@ function Invoke-RemoteStatus([string]$Label, [string]$HostName) {
     Write-Host "################################################################################" -ForegroundColor Cyan
     Write-Host " $Label  ($User@$HostName)" -ForegroundColor Cyan
     Write-Host "################################################################################" -ForegroundColor Cyan
-    $scriptBody | ssh -T "${User}@${HostName}" "$remoteCmd"
+    # Piping to ssh.exe on Windows can inject CR; feed LF-only script bytes to stdin instead.
+    $norm = $scriptBody.TrimEnd() + "`n"
+    $psi = [System.Diagnostics.ProcessStartInfo]::new()
+    $psi.FileName = "ssh"
+    $psi.Arguments = "-T `"${User}@${HostName}`" `"$remoteCmd`""
+    $psi.RedirectStandardInput = $true
+    $psi.UseShellExecute = $false
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.CreateNoWindow = $true
+    $p = [System.Diagnostics.Process]::new()
+    $p.StartInfo = $psi
+    [void]$p.Start()
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($norm)
+    $p.StandardInput.BaseStream.Write($bytes, 0, $bytes.Length)
+    $p.StandardInput.Close()
+    $out = $p.StandardOutput.ReadToEnd()
+    $err = $p.StandardError.ReadToEnd()
+    $p.WaitForExit()
+    if ($out) { Write-Host $out }
+    if ($err) { Write-Host $err }
+    if ($p.ExitCode -ne 0) {
+        Write-Host "ssh exited with code $($p.ExitCode)" -ForegroundColor Yellow
+    }
 }
 
 Invoke-RemoteStatus "DROPLET V01 (ports 8080-8082 on $V01Host)" $V01Host
