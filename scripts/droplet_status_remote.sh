@@ -54,7 +54,8 @@ if [[ "${SKIP_TRADES}" == "1" ]]; then
 fi
 
 echo ""
-echo "--- Open / recent trades (freqtrade show-trades, truncated) ---"
+echo "--- All trades (newest first by open time; open and closed) ---"
+PY_SORT="${REPO}/scripts/print_trades_newest_first.py"
 while IFS= read -r cname; do
   [[ -z "${cname}" ]] && continue
   dbu=$(db_url_for "${cname}")
@@ -64,7 +65,13 @@ while IFS= read -r cname; do
   fi
   echo ""
   echo ">>> ${cname} <<<"
-  docker exec "${cname}" freqtrade show-trades --db-url "${dbu}" 2>/dev/null | head -45 || echo "(exec failed or no trades)"
+  if [[ -f "${PY_SORT}" ]]; then
+    docker exec "${cname}" freqtrade show-trades --db-url "${dbu}" --print-json 2>/dev/null \
+      | python3 "${PY_SORT}" || echo "  (show-trades failed)"
+  else
+    echo "  (missing ${PY_SORT} — git pull on this Droplet for sorted trade list)"
+    docker exec "${cname}" freqtrade show-trades --db-url "${dbu}" 2>/dev/null | head -80 || echo "  (exec failed)"
+  fi
 done < <(docker ps --filter "name=cointpairs" --format '{{.Names}}' | sort)
 
 echo ""
