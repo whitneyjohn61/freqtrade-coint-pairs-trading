@@ -1,0 +1,125 @@
+# Candidate L forward tests: three pairs × V01 or V02 (compose profiles).
+# Droplet A: docker compose --profile v01 up -d
+# Droplet B: docker compose --profile v02 up -d
+# Local (both): docker compose --profile v01 --profile v02 up -d  (uses host ports 8080–8085)
+
+services:
+  cointpairs_v01_btceth:
+    image: freqtradeorg/freqtrade:stable
+    container_name: cointpairs_v01_btceth
+    restart: unless-stopped
+    profiles: ["v01"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./config:/freqtrade/config
+    environment:
+      - FT_PROVIDER=ccxt
+    command: >
+      trade
+      --config /freqtrade/config/config_cointpairs_l_phase1.json
+      --strategy EnhancedCointPairsStrategy_V01
+      --db-url sqlite:////freqtrade/user_data/tradesv3.v01.btceth.sqlite
+      --logfile /freqtrade/user_data/logs/freqtrade_v01_btceth.log
+      --userdir /freqtrade/user_data
+
+  cointpairs_v01_bnbsol:
+    image: freqtradeorg/freqtrade:stable
+    container_name: cointpairs_v01_bnbsol
+    restart: unless-stopped
+    profiles: ["v01"]
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./config:/freqtrade/config
+    environment:
+      - FT_PROVIDER=ccxt
+    command: >
+      trade
+      --config /freqtrade/config/config_cointpairs_l_phase1_bnb_sol.json
+      --strategy EnhancedCointPairsStrategy_V01
+      --db-url sqlite:////freqtrade/user_data/tradesv3.v01.bnbsol.sqlite
+      --logfile /freqtrade/user_data/logs/freqtrade_v01_bnbsol.log
+      --userdir /freqtrade/user_data
+
+  cointpairs_v01_btcsol:
+    image: freqtradeorg/freqtrade:stable
+    container_name: cointpairs_v01_btcsol
+    restart: unless-stopped
+    profiles: ["v01"]
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./config:/freqtrade/config
+    environment:
+      - FT_PROVIDER=ccxt
+    command: >
+      trade
+      --config /freqtrade/config/config_cointpairs_l_phase1_btc_sol.json
+      --strategy EnhancedCointPairsStrategy_V01
+      --db-url sqlite:////freqtrade/user_data/tradesv3.v01.btcsol.sqlite
+      --logfile /freqtrade/user_data/logs/freqtrade_v01_btcsol.log
+      --userdir /freqtrade/user_data
+
+  cointpairs_v02_btceth:
+    image: freqtradeorg/freqtrade:stable
+    container_name: cointpairs_v02_btceth
+    restart: unless-stopped
+    profiles: ["v02"]
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./config:/freqtrade/config
+    environment:
+      - FT_PROVIDER=ccxt
+    command: >
+      trade
+      --config /freqtrade/config/config_cointpairs_l_phase1.json
+      --strategy EnhancedCointPairsStrategy_V02
+      --db-url sqlite:////freqtrade/user_data/tradesv3.v02.btceth.sqlite
+      --logfile /freqtrade/user_data/logs/freqtrade_v02_btceth.log
+      --userdir /freqtrade/user_data
+
+  cointpairs_v02_bnbsol:
+    image: freqtradeorg/freqtrade:stable
+    container_name: cointpairs_v02_bnbsol
+    restart: unless-stopped
+    profiles: ["v02"]
+    ports:
+      - "8084:8080"
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./config:/freqtrade/config
+    environment:
+      - FT_PROVIDER=ccxt
+    command: >
+      trade
+      --config /freqtrade/config/config_cointpairs_l_phase1_bnb_sol.json
+      --strategy EnhancedCointPairsStrategy_V02
+      --db-url sqlite:////freqtrade/user_data/tradesv3.v02.bnbsol.sqlite
+      --logfile /freqtrade/user_data/logs/freqtrade_v02_bnbsol.log
+      --userdir /freqtrade/user_data
+
+  cointpairs_v02_btcsol:
+    image: freqtradeorg/freqtrade:stable
+    container_name: cointpairs_v02_btcsol
+    restart: unless-stopped
+    profiles: ["v02"]
+    ports:
+      - "8085:8080"
+    volumes:
+      - ./user_data:/freqtrade/user_data
+      - ./config:/freqtrade/config
+    environment:
+      - FT_PROVIDER=ccxt
+    command: >
+      trade
+      --config /freqtrade/config/config_cointpairs_l_phase1_btc_sol.json
+      --strategy EnhancedCointPairsStrategy_V02
+      --db-url sqlite:////freqtrade/user_data/tradesv3.v02.btcsol.sqlite
+      --logfile /freqtrade/user_data/logs/freqtrade_v02_btcsol.log
+      --userdir /freqtrade/user_data
