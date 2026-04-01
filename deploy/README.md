@@ -8,12 +8,40 @@
 - **Droplet B:** same repo, `docker compose --profile v02 up -d`  
   Open **8083–8085** (or remap ports via compose override if you prefer 8080–8082 on this host only).
 
+## Automated setup (optional)
+
+From your **Windows PC**, in a clone of this repo, you can pipe the remote setup script over SSH (installs Docker, clones/pulls repo, generates API secrets, starts compose):
+
+```powershell
+cd C:\Work\algo-trading\freqtrade-coint-pairs-trading
+.\scripts\droplet_setup_from_local.ps1 -DropletHost YOUR_DROPLET_IP -ComposeProfile v01
+```
+
+Use **`v01`** on the first Droplet and **`v02`** on the second. Example for a second Droplet at `139.59.139.196`:
+
+```powershell
+.\scripts\droplet_setup_from_local.ps1 -DropletHost 139.59.139.196 -ComposeProfile v02
+```
+
+**On the Droplet only** (from the repo root, after clone or `git pull`), run as **root**:
+
+```bash
+cd ~/freqtrade-coint-pairs-trading
+bash scripts/droplet_setup.sh
+# other profile:
+FT_COMPOSE_PROFILE=v02 bash scripts/droplet_setup.sh
+```
+
+Environment variables: `FT_COMPOSE_PROFILE`, `FT_REPO_URL`, `FT_INSTALL_DIR`, `FT_SKIP_COMPOSE=1` (install only, do not start containers), `FT_SKIP_SECRETS=1` (skip generating config if you manage files yourself). See `scripts/droplet_setup.sh` for details.
+
+After any automated run, still **add Binance keys** and confirm **`dry_run`** before live trading.
+
 ## Go-live checklist (each Droplet)
 
 1. **Create** an Ubuntu LTS Droplet with enough **RAM/CPU** for three Freqtrade processes (e.g. **4 GB RAM** minimum; scale up if you see OOM in logs). Add **SSH keys**; avoid password-only SSH.
 2. **Firewall (DO Cloud Firewall or UFW):** allow **TCP 22** (SSH) and the profile’s UI ports (**8080–8082** for `v01`, **8083–8085** for `v02`). Prefer **source = your IP** for UI ports, not `0.0.0.0/0`, unless you accept the risk.
-3. **Install Docker Engine + Compose v2** on the Droplet (see [Docker docs for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)).
-4. **Clone** this repo (HTTPS or SSH): `git clone <repo-url> && cd freqtrade-coint-pairs-trading`
+3. **Install Docker Engine + Compose v2** on the Droplet — use [Docker docs for Ubuntu](https://docs.docker.com/engine/install/ubuntu/), or run **`scripts/droplet_setup_from_local.ps1`** / **`scripts/droplet_setup.sh`** (see **Automated setup** above).
+4. **Clone** this repo (HTTPS or SSH): `git clone <repo-url> && cd freqtrade-coint-pairs-trading` — skipped if you used the automated script.
 5. **API / UI secrets** (nothing committed): install Python 3, then from repo root:
    ```bash
    python3 scripts/generate_api_secrets.py --password-file config/.api_ui_password.txt
