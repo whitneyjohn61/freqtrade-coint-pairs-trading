@@ -47,6 +47,20 @@ cd /root/freqtrade-coint-pairs-trading && docker compose --profile v01 up -d --f
 
 (Use `--profile v02` on the V02 Droplet.) Newer **`scripts/droplet_setup.sh`** runs this `chown` automatically before `docker compose up`.
 
+### Status summary (all 6 instances without opening each UI)
+
+From your **Windows** PC (same SSH keys as deploy), in a clone of the repo:
+
+```powershell
+cd C:\Work\algo-trading\freqtrade-coint-pairs-trading
+git pull
+.\scripts\droplet_status_from_local.ps1
+```
+
+Defaults: **V01** = `165.227.165.131`, **V02** = `139.59.139.196`. Override: `-V01Host`, `-V02Host`. Faster (no `freqtrade show-trades`): `-SkipTrades`. More log lines: `-LogTail 40`.
+
+This SSHs to **both** Droplets and prints **docker** state, **log tails** per `freqtrade_*.log`, and (unless `-SkipTrades`) a **truncated `show-trades`** per container.
+
 ### Private GitHub repo / `could not read Username for 'https://github.com'`
 
 HTTPS clone on a Droplet **cannot** open a login prompt. If the repo is **private**, either:
