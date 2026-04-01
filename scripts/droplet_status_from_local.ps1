@@ -57,7 +57,8 @@ function BashSingleQuote([string]$s) {
     return "'" + ($s -replace "'", "'\''") + "'"
 }
 
-$scriptBody = (Get-Content -LiteralPath $scriptPath -Raw) -replace "`r`n", "`n" -replace "`r", "`n"
+# Strip all CR so remote bash never sees $'\r' (mixed line endings break `bash -s`).
+$scriptBody = (Get-Content -LiteralPath $scriptPath -Raw) -replace "`r", ""
 
 function Invoke-RemoteStatus([string]$Label, [string]$HostName) {
     $exports = @(

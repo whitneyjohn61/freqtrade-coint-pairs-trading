@@ -69,7 +69,7 @@ while IFS= read -r cname; do
     docker exec "${cname}" freqtrade show-trades --db-url "${dbu}" --print-json 2>/dev/null \
       | python3 "${PY_SORT}" || echo "  (show-trades failed)"
   else
-    echo "  (missing ${PY_SORT} — git pull on this Droplet for sorted trade list)"
+    echo "  (missing ${PY_SORT} - git pull on this Droplet for sorted trade list)"
     docker exec "${cname}" freqtrade show-trades --db-url "${dbu}" 2>/dev/null | head -80 || echo "  (exec failed)"
   fi
 done < <(docker ps --filter "name=cointpairs" --format '{{.Names}}' | sort)
@@ -80,7 +80,7 @@ if [[ -f "${SUMMARY_PY}" ]]; then
   python3 "${SUMMARY_PY}" || echo "(instance summary failed)"
 else
   echo "--- Instance summary (this Droplet) ---"
-  echo "(missing ${SUMMARY_PY} — git pull on this Droplet)"
+  echo "(missing ${SUMMARY_PY} - git pull on this Droplet)"
 fi
 
 echo ""
