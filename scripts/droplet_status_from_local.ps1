@@ -78,5 +78,19 @@ function Invoke-RemoteStatus([string]$Label, [string]$HostName) {
 Invoke-RemoteStatus "DROPLET V01 (ports 8080-8082 on $V01Host)" $V01Host
 Invoke-RemoteStatus "DROPLET V02 (ports 8083-8085 on $V02Host)" $V02Host
 
+if (-not $SkipTrades) {
+    $combinedPy = Join-Path $here "droplet_combined_summary_from_local.py"
+    if (Test-Path -LiteralPath $combinedPy) {
+        Write-Host ""
+        try {
+            & python $combinedPy --user $User --v01 $V01Host --v02 $V02Host
+        } catch {
+            Write-Host "Combined instance summary failed: $_" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "Missing: $combinedPy" -ForegroundColor Yellow
+    }
+}
+
 Write-Host ""
 Write-Host "All done." -ForegroundColor Green

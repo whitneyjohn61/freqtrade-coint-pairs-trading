@@ -74,6 +74,15 @@ while IFS= read -r cname; do
   fi
 done < <(docker ps --filter "name=cointpairs" --format '{{.Names}}' | sort)
 
+SUMMARY_PY="${REPO}/scripts/droplet_instance_summary_on_host.py"
+echo ""
+if [[ -f "${SUMMARY_PY}" ]]; then
+  python3 "${SUMMARY_PY}" || echo "(instance summary failed)"
+else
+  echo "--- Instance summary (this Droplet) ---"
+  echo "(missing ${SUMMARY_PY} — git pull on this Droplet)"
+fi
+
 echo ""
 echo "================================================================================"
 echo "Done."

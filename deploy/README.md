@@ -59,7 +59,7 @@ git pull
 
 Defaults: **V01** = `165.227.165.131`, **V02** = `139.59.139.196`. Override: `-V01Host`, `-V02Host`. Faster (no `freqtrade show-trades`): `-SkipTrades`. More log lines: `-LogTail 40`.
 
-This SSHs to **both** Droplets and prints **docker** state, **log tails** per `freqtrade_*.log`, and (unless `-SkipTrades`) **all trades per container** via `show-trades --print-json`, sorted **newest first** by open time (`scripts/print_trades_newest_first.py`). On each Droplet, **`git pull`** once so that helper script exists under the repo path.
+This SSHs to **both** Droplets and prints **docker** state, **log tails** per `freqtrade_*.log`, and (unless `-SkipTrades`) **all trades per container** via `show-trades --print-json`, sorted **newest first** by open time (`scripts/print_trades_newest_first.py`). Each Droplet run also ends with a **markdown instance summary** for its three containers (`scripts/droplet_instance_summary_on_host.py`). After both Droplets finish, the script prints a **combined six-instance summary table** (`scripts/droplet_combined_summary_from_local.py`). **`git pull`** on each Droplet so `scripts/` helpers exist there.
 
 ### `scripts/local.env` (optional, gitignored)
 
