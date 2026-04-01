@@ -61,6 +61,15 @@ Defaults: **V01** = `165.227.165.131`, **V02** = `139.59.139.196`. Override: `-V
 
 This SSHs to **both** Droplets and prints **docker** state, **log tails** per `freqtrade_*.log`, and (unless `-SkipTrades`) a **truncated `show-trades`** per container.
 
+### `scripts/local.env` (optional, gitignored)
+
+Copy **`scripts/local.env.example`** → **`scripts/local.env`** and fill in IPs, optional **FT_SSH_USER**, and optional **FreqUI** passwords (`FT_UI_PASSWORD_V01` / `FT_UI_PASSWORD_V02`) if you want them available as environment variables for local scripts. **`scripts/local.env` is listed in `.gitignore`** — do not commit it.
+
+- **`droplet_status_from_local.ps1`** reads **`FT_V01_HOST`**, **`FT_V02_HOST`**, **`FT_SSH_USER`**, **`FT_REPO_ROOT`** when you do not pass `-V01Host` / `-V02Host` / etc.
+- **`droplet_setup_from_local.ps1`** can use **`FT_DROPLET_HOST`**, **`FT_COMPOSE_PROFILE`**, **`FT_REPO_URL`**, **`FT_GIT_SSH_COMMAND`**, **`FT_INSTALL_DIR`** so you can run with fewer parameters after editing `local.env`.
+
+Passwords in `local.env` are **not** used for SSH (keys are used); they are loaded for your own tooling or any future REST helpers you add locally.
+
 ### Private GitHub repo / `could not read Username for 'https://github.com'`
 
 HTTPS clone on a Droplet **cannot** open a login prompt. If the repo is **private**, either:
