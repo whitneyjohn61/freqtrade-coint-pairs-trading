@@ -8,6 +8,7 @@
 #   FT_INSTALL_DIR       install path (default: $HOME/freqtrade-coint-pairs-trading)
 #   FT_SKIP_COMPOSE      if 1, do not run docker compose up
 #   FT_SKIP_SECRETS      if 1, skip generate_api_secrets when configs already exist (default: generate if any missing)
+#   FT_GIT_SSH_COMMAND   optional; passed to GIT_SSH_COMMAND for git@ clone (Deploy key)
 
 set -euo pipefail
 
@@ -60,12 +61,36 @@ install_docker
 
 apt-get install -y git python3
 
+# Avoid interactive "Username for https://github.com" on headless servers (private HTTPS clone fails).
+export GIT_TERMINAL_PROMPT=0
+# Optional: for git@github.com clone with a Deploy key, e.g.
+#   export FT_GIT_SSH_COMMAND='ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes'
+if [[ -n "${FT_GIT_SSH_COMMAND:-}" ]]; then
+  export GIT_SSH_COMMAND="${FT_GIT_SSH_COMMAND}"
+fi
+
 if [[ ! -d "${FT_INSTALL_DIR}/.git" ]]; then
   echo "[droplet_setup] Cloning ${FT_REPO_URL} -> ${FT_INSTALL_DIR}"
-  git clone "${FT_REPO_URL}" "${FT_INSTALL_DIR}"
+  if ! git clone "${FT_REPO_URL}" "${FT_INSTALL_DIR}"; then
+    echo "" >&2
+    echo "[droplet_setup] ERROR: git clone failed." >&2
+    echo "  If the repo is PRIVATE, HTTPS cannot ask for a password on the Droplet." >&2
+    echo "  Fix one of:" >&2
+    echo "    A) GitHub → repo Settings → General → Danger zone → Change visibility → Public" >&2
+    echo "    B) Use SSH: add a Deploy key (repo → Settings → Deploy keys), then on the Droplet:" >&2
+    echo "       ssh-keygen -t ed25519 -N '' -f ~/.ssh/github_deploy" >&2
+    echo "       cat ~/.ssh/github_deploy.pub   # paste into GitHub Deploy keys" >&2
+    echo "       export FT_REPO_URL=git@github.com:whitneyjohn61/freqtrade-coint-pairs-trading.git" >&2
+    echo "       export GIT_SSH_COMMAND='ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes'" >&2
+    echo "       bash scripts/droplet_setup.sh" >&2
+    exit 1
+  fi
 else
   echo "[droplet_setup] Repo exists; pulling latest"
-  git -C "${FT_INSTALL_DIR}" pull --ff-only
+  git -C "${FT_INSTALL_DIR}" pull --ff-only || {
+    echo "[droplet_setup] git pull failed (private repo / auth?). See clone error hints above." >&2
+    exit 1
+  }
 fi
 
 cd "${FT_INSTALL_DIR}"

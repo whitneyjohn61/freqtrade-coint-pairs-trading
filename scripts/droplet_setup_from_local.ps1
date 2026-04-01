@@ -19,6 +19,8 @@ param(
 
     [string] $InstallDir = "",
 
+    [string] $GitSshCommand = "",
+
     [switch] $SkipCompose
 )
 
@@ -40,6 +42,9 @@ if ($InstallDir) {
 }
 if ($SkipCompose) {
     $remoteCmd += " export FT_SKIP_COMPOSE=1;"
+}
+if ($GitSshCommand) {
+    $remoteCmd += " export FT_GIT_SSH_COMMAND=$(BashSingleQuote $GitSshCommand);"
 }
 $remoteCmd += " bash -s"
 

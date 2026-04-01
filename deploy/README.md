@@ -36,6 +36,27 @@ Environment variables: `FT_COMPOSE_PROFILE`, `FT_REPO_URL`, `FT_INSTALL_DIR`, `F
 
 After any automated run, still **add Binance keys** and confirm **`dry_run`** before live trading.
 
+### Private GitHub repo / `could not read Username for 'https://github.com'`
+
+HTTPS clone on a Droplet **cannot** open a login prompt. If the repo is **private**, either:
+
+- **Make the repo public** (GitHub → **Settings** → **General** → **Danger zone** → **Change repository visibility**), then re-run the setup script, **or**
+- **Use SSH with a Deploy key:** Repo → **Settings** → **Deploy keys** → **Add deploy key** (read-only). On the Droplet, create `ssh-keygen -t ed25519 -N '' -f ~/.ssh/github_deploy`, paste the `.pub` into GitHub, then:
+
+  ```bash
+  export FT_REPO_URL=git@github.com:whitneyjohn61/freqtrade-coint-pairs-trading.git
+  export GIT_SSH_COMMAND='ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes'
+  bash scripts/droplet_setup.sh
+  ```
+
+From PowerShell, after the Deploy key exists on the Droplet at `~/.ssh/github_deploy`:
+
+```powershell
+.\scripts\droplet_setup_from_local.ps1 -DropletHost YOUR_IP -ComposeProfile v02 `
+  -RepoUrl "git@github.com:whitneyjohn61/freqtrade-coint-pairs-trading.git" `
+  -GitSshCommand "ssh -i ~/.ssh/github_deploy -o IdentitiesOnly=yes"
+```
+
 ## Go-live checklist (each Droplet)
 
 1. **Create** an Ubuntu LTS Droplet with enough **RAM/CPU** for three Freqtrade processes (e.g. **4 GB RAM** minimum; scale up if you see OOM in logs). Add **SSH keys**; avoid password-only SSH.
