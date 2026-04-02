@@ -54,3 +54,5 @@ Logs: `user_data/logs/freqtrade_v01_*.log` — see also `docker compose logs -f 
 ## Reference
 
 Lab research / backtests live in a separate repo (`freqtrade-strategy-lab`); this tree is deploy-only.
+
+- **Candidate L docs (copied here):** `user_data/info/EnhancedCointPairs_Deep_Dive.md` (narrative + results summary), `user_data/info/EnhancedCointPairs_Dev_Plan.md` (full dev plan — canonical copy lives in the lab repo).
