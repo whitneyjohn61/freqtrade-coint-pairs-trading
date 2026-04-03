@@ -34,7 +34,16 @@ def friendly_label(container_name: str) -> str:
     return container_name
 
 
-def leg_pnl(t: dict[str, Any]) -> float:
+def leg_pnl(t: dict[str, Any], live_open: dict[int, float] | None = None) -> float:
+    """PnL in stake currency: closed uses DB close_profit_abs; open prefers live API total_profit_abs."""
+    tid = t.get("trade_id")
+    if t.get("is_open") and live_open is not None and tid is not None:
+        try:
+            k = int(tid)
+        except (TypeError, ValueError):
+            k = None
+        if k is not None and k in live_open:
+            return float(live_open[k])
     if not t.get("is_open"):
         v = t.get("close_profit_abs")
         if v is not None:
@@ -49,13 +58,37 @@ def leg_pnl(t: dict[str, Any]) -> float:
     return 0.0
 
 
-def aggregate(trades: list[dict[str, Any]]) -> tuple[int, int, float, float]:
+def open_mtm_sum(trades: list[dict[str, Any]], live_open: dict[int, float] | None) -> float:
+    """Sum of live mark-to-market PnL for open trades (subset of combined total)."""
+    if not live_open:
+        return 0.0
+    s = 0.0
+    for t in trades:
+        if not t.get("is_open"):
+            continue
+        tid = t.get("trade_id")
+        if tid is None:
+            continue
+        try:
+            k = int(tid)
+        except (TypeError, ValueError):
+            continue
+        if k in live_open:
+            s += float(live_open[k])
+    return s
+
+
+def aggregate(
+    trades: list[dict[str, Any]],
+    live_open: dict[int, float] | None = None,
+) -> tuple[int, int, float, float, float]:
     n_open = sum(1 for t in trades if t.get("is_open"))
     n_closed = sum(1 for t in trades if not t.get("is_open"))
-    total_pnl = sum(leg_pnl(t) for t in trades)
+    total_pnl = sum(leg_pnl(t, live_open) for t in trades)
+    omtm = open_mtm_sum(trades, live_open)
     stake = sum(float(t.get("stake_amount") or 0) for t in trades)
     pct = (total_pnl / stake * 100.0) if stake else 0.0
-    return n_open, n_closed, total_pnl, pct
+    return n_open, n_closed, total_pnl, pct, omtm
 
 
 def legs_summary(trades: list[dict[str, Any]]) -> str:
@@ -82,36 +115,40 @@ def markdown_row(
     docker_status: str,
     n_open: int,
     n_closed: int,
+    open_mtm: float | None,
     total_pnl: float,
     pct: float,
     legs: str,
 ) -> str:
     docker_cell = esc_cell(f"{container_name}<br>{docker_status}")
     legs_cell = esc_cell(legs.replace(", ", ",<br>"))
+    mtm_cell = f"{open_mtm:.2f}" if open_mtm is not None else "—"
     return (
         f"| **{esc_cell(instance_label)}** | {esc_cell(host_port)} | {docker_cell} | {n_open} | {n_closed} | "
-        f"{total_pnl:.2f} | {pct:.2f}% | {legs_cell} |"
+        f"{mtm_cell} | {total_pnl:.2f} | {pct:.2f}% | {legs_cell} |"
     )
 
 
 def markdown_header() -> str:
     return (
-        "| Instance | Host port | Docker | Open | Closed | Total PnL (USDT) | Total %PnL | Open legs (summary) |\n"
-        "|----------|-----------|--------|------|--------|------------------|------------|----------------------|"
+        "| Instance | Host port | Docker | Open | Closed | Open MTM (USDT) | Total PnL (USDT) | Total %PnL | Open legs (summary) |\n"
+        "|----------|-----------|--------|------|--------|-----------------|------------------|------------|----------------------|"
     )
 
 
 def markdown_total_row(
     n_open: int,
     n_closed: int,
+    open_mtm: float | None,
     total_pnl: float,
     stake_sum: float,
 ) -> str:
     pct = (total_pnl / stake_sum * 100.0) if stake_sum else 0.0
     dash = "-"
+    mtm_cell = f"**{open_mtm:.2f}**" if open_mtm is not None else dash
     return (
         f"| **All instances** | {dash} | {dash} | "
-        f"**{n_open}** | **{n_closed}** | **{total_pnl:.2f}** | **{pct:.2f}%** | {dash} |"
+        f"**{n_open}** | **{n_closed}** | {mtm_cell} | **{total_pnl:.2f}** | **{pct:.2f}%** | {dash} |"
     )
 
 
@@ -141,6 +178,16 @@ CONTAINER_HOST_PORT: dict[str, int] = {
     "cointpairs_v02_btceth": 8083,
     "cointpairs_v02_bnbsol": 8084,
     "cointpairs_v02_btcsol": 8085,
+}
+
+# Paths inside the container (see docker-compose command --config)
+CONTAINER_CONFIG_PATH: dict[str, str] = {
+    "cointpairs_v01_btceth": "/freqtrade/config/config_cointpairs_l_phase1.json",
+    "cointpairs_v01_bnbsol": "/freqtrade/config/config_cointpairs_l_phase1_bnb_sol.json",
+    "cointpairs_v01_btcsol": "/freqtrade/config/config_cointpairs_l_phase1_btc_sol.json",
+    "cointpairs_v02_btceth": "/freqtrade/config/config_cointpairs_l_phase1.json",
+    "cointpairs_v02_bnbsol": "/freqtrade/config/config_cointpairs_l_phase1_bnb_sol.json",
+    "cointpairs_v02_btcsol": "/freqtrade/config/config_cointpairs_l_phase1_btc_sol.json",
 }
 
 CONTAINERS_V01 = (

@@ -13,6 +13,7 @@ _REPO_SCRIPTS = Path(__file__).resolve().parent
 if str(_REPO_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_REPO_SCRIPTS))
 
+from docker_live_pnl import fetch_live_open_pnl_local  # noqa: E402
 from instance_summary_lib import (  # noqa: E402
     CONTAINER_DB_URL,
     CONTAINER_HOST_PORT,
@@ -22,7 +23,6 @@ from instance_summary_lib import (  # noqa: E402
     markdown_header,
     markdown_row,
     markdown_total_row,
-    parse_json_stdin,
     trades_from_payload,
 )
 
@@ -88,14 +88,19 @@ def main() -> None:
         return
 
     rows: list[tuple[int, int, float, float]] = []
+    mtm_values: list[float | None] = []
     print("")
     print("--- Instance summary (this Droplet) ---")
     print("")
     print(markdown_header())
     for cname in names:
         trades = _fetch_trades(cname)
-        n_open, n_closed, pnl, pct = aggregate(trades)
-        rows.append((n_open, n_closed, pnl, sum(float(t.get("stake_amount") or 0) for t in trades)))
+        live_map, api_ok = fetch_live_open_pnl_local(cname)
+        live_use = live_map if api_ok else None
+        n_open, n_closed, pnl, pct, omtm = aggregate(trades, live_use)
+        stake = sum(float(t.get("stake_amount") or 0) for t in trades)
+        rows.append((n_open, n_closed, pnl, stake))
+        mtm_values.append(omtm if api_ok else None)
         port = str(CONTAINER_HOST_PORT.get(cname, "?"))
         st = _docker_status(cname)
         print(
@@ -106,6 +111,7 @@ def main() -> None:
                 st,
                 n_open,
                 n_closed,
+                omtm if api_ok else None,
                 pnl,
                 pct,
                 legs_summary(trades),
@@ -115,10 +121,18 @@ def main() -> None:
     tc = sum(x[1] for x in rows)
     tp = sum(x[2] for x in rows)
     ts = sum(x[3] for x in rows)
-    print(markdown_total_row(to, tc, tp, ts))
+    if any(v is None for v in mtm_values):
+        tot_mtm: float | None = None
+    else:
+        tot_mtm = sum(mtm_values)  # type: ignore[arg-type]
+    print(markdown_total_row(to, tc, tot_mtm, tp, ts))
     print("")
-    print("PnL / % use realized `close_profit_abs` (closed) and `profit_abs` when set (open);")
+    print(
+        "Closed trades: `close_profit_abs` from the DB. Open legs: live mark-to-market via "
+        "`GET /api/v1/status` (`total_profit_abs`, same as FreqUI). Total PnL = closed + open MTM."
+    )
     print("% column is total PnL / sum(stake_amount) for trades in that instance DB.")
+    print("Open MTM shows — if the in-container API call failed (check api_server credentials).")
 
 
 if __name__ == "__main__":

@@ -13,6 +13,7 @@ _REPO_SCRIPTS = Path(__file__).resolve().parent
 if str(_REPO_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_REPO_SCRIPTS))
 
+from docker_live_pnl import fetch_live_open_pnl_ssh  # noqa: E402
 from instance_summary_lib import (  # noqa: E402
     CONTAINER_DB_URL,
     CONTAINER_HOST_PORT,
@@ -92,15 +93,19 @@ def main() -> None:
     tot_open = tot_closed = 0
     tot_pnl = 0.0
     tot_stake = 0.0
+    mtm_values: list[float | None] = []
 
     for host, cname, _ in order:
         trades = _ssh_fetch(args.user, host, cname)
-        n_open, n_closed, pnl, _pct = aggregate(trades)
+        live_map, api_ok = fetch_live_open_pnl_ssh(args.user, host, cname)
+        live_use = live_map if api_ok else None
+        n_open, n_closed, pnl, _pct, omtm = aggregate(trades, live_use)
         stake = sum(float(t.get("stake_amount") or 0) for t in trades)
         tot_open += n_open
         tot_closed += n_closed
         tot_pnl += pnl
         tot_stake += stake
+        mtm_values.append(omtm if api_ok else None)
         pct = (pnl / stake * 100.0) if stake else 0.0
         port = str(CONTAINER_HOST_PORT[cname])
         st = _ssh_status(args.user, host, cname)
@@ -112,16 +117,25 @@ def main() -> None:
                 st,
                 n_open,
                 n_closed,
+                omtm if api_ok else None,
                 pnl,
                 pct,
                 legs_summary(trades),
             )
         )
 
-    print(markdown_total_row(tot_open, tot_closed, tot_pnl, tot_stake))
+    if any(v is None for v in mtm_values):
+        tot_mtm: float | None = None
+    else:
+        tot_mtm = sum(mtm_values)  # type: ignore[arg-type]
+    print(markdown_total_row(tot_open, tot_closed, tot_mtm, tot_pnl, tot_stake))
     print("")
-    print("PnL / % use realized `close_profit_abs` (closed) and `profit_abs` when set (open);")
+    print(
+        "Closed trades: `close_profit_abs` from the DB. Open legs: live mark-to-market via "
+        "`GET /api/v1/status` (`total_profit_abs`). Total PnL = closed + open MTM."
+    )
     print("% column is total PnL / sum(stake_amount) for trades in that instance DB.")
+    print("Open MTM shows — if the in-container API call failed (check api_server credentials).")
 
 
 if __name__ == "__main__":
