@@ -49,6 +49,8 @@ cd /root/freqtrade-coint-pairs-trading && docker compose --profile v01 up -d --f
 
 ### Status summary (all 6 instances without opening each UI)
 
+Forward results are governed by the repo-root **`TESTING.md`** charter (v5.0 alignment — do not treat PnL as §6 “pass” for Candidate L).
+
 From your **Windows** PC (same SSH keys as deploy), in a clone of the repo:
 
 ```powershell

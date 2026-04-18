@@ -1,6 +1,8 @@
 # freqtrade-coint-pairs-trading
 
-Standalone forward-test deployment for **Candidate L** (Enhanced Cointegration Pairs): **V01** vs **V02** on **three** Binance USDT-M spreads:
+Standalone **forward-test / ops** deployment for **Candidate L** (Enhanced Cointegration Pairs): **V01** vs **V02** on **three** Binance USDT-M spreads.
+
+**Research Log v5.0:** This repo collects **live-shaped data**; it does **not** mean Candidate L has cleared the multi-stage gate (§6) in **`freqtrade-strategy-lab`**. Read **`TESTING.md`** for the experiment charter (scope freeze, pre-registered read criteria, selection-bias framing). Canonical policy: `freqtrade-strategy-lab/user_data/info/AlgoTrading_Research_Log.md`.
 
 | Config | Pair (traded / anchor) |
 |--------|-------------------------|
@@ -55,4 +57,5 @@ Logs: `user_data/logs/freqtrade_v01_*.log` — see also `docker compose logs -f 
 
 Lab research / backtests live in a separate repo (`freqtrade-strategy-lab`); this tree is deploy-only.
 
-- **Candidate L docs (copied here):** `user_data/info/EnhancedCointPairs_Deep_Dive.md` (narrative + results summary), `user_data/info/EnhancedCointPairs_Dev_Plan.md` (full dev plan — canonical copy lives in the lab repo).
+- **`TESTING.md`** — v5.0 experiment charter (gates, scope freeze, how to interpret forward results).
+- **Candidate L docs (copied here):** `user_data/info/EnhancedCointPairs_Deep_Dive.md` (narrative + results summary), `user_data/info/EnhancedCointPairs_Dev_Plan.md` (full dev plan — canonical copy may live in the lab repo).

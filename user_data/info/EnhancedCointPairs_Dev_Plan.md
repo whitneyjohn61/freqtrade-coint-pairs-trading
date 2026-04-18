@@ -2,6 +2,10 @@
 ## Candidate L from AlgoTrading Research Log
 ## Created: 2026-03-31 | Status: Phase 1 — IN PROGRESS (BTC/ETH @ 4h dual-leg MVP)
 
+> **v5.0 (2026-04-17):** Candidate L has **not** been declared to have cleared the multi-stage gate (**§6**) in `AlgoTrading_Research_Log.md` (see **`freqtrade-strategy-lab`**, `user_data/info/`). This deploy repo’s live forward run is a **bounded experiment**; see repo-root **`TESTING.md`** for scope freeze and how to interpret results. Do not use droplet PnL alone to validate Palazzi headline metrics.
+>
+> **Forward checkpoint (2026-04-18):** **CONTINUE** — 12 closed / 8 open legs, ~−1.72% aggregate vs stakes; see **`TESTING.md`**.
+
 ---
 
 ## Quick-Start for Claude (Session Resume)

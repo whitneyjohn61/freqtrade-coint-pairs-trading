@@ -114,6 +114,18 @@ if (-not $SkipTrades) {
     } else {
         Write-Host "Missing: $combinedPy" -ForegroundColor Yellow
     }
+
+    $allTradesPy = Join-Path $here "droplet_all_trades_table_from_local.py"
+    if (Test-Path -LiteralPath $allTradesPy) {
+        Write-Host ""
+        try {
+            & python $allTradesPy --user $User --v01 $V01Host --v02 $V02Host
+        } catch {
+            Write-Host "All-trades table failed: $_" -ForegroundColor Yellow
+        }
+    } else {
+        Write-Host "Missing: $allTradesPy" -ForegroundColor Yellow
+    }
 }
 
 Write-Host ""
