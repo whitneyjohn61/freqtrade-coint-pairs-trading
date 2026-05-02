@@ -1,5 +1,5 @@
 # Enhanced Cointegration Pairs Trading (Candidate L) — Deep Dive
-## Version 1 | Started: 2026-03-31 | Status: Phase 1 lab complete — forward-test deploy ACTIVE
+## Version 1 | Started: 2026-03-31 | Status: Phase 1 lab complete — **Phase 3 forward discontinued** (**PARKED** per `AlgoTrading_Research_Log.md` §4.3, **2026-05-02**)
 
 ---
 
@@ -9,8 +9,9 @@
 > Use with `AlgoTrading_Research_Log.md` (registry), `EnhancedCointPairs_Dev_Plan.md` (roadmap + commands), and — for production — `freqtrade-coint-pairs-trading` (deploy repo).
 
 ### Current Status
+- **Research Log:** **Candidate L is PARKED (2026-05-02).** Droplet-hosted forward tests ended by policy (~**4 calendar weeks** of live-shaped Binance futures data via dual-leg **`freqtradeorg/freqtrade:stable`** bots). **`§6` not cleared.** See **§6.3** below for co-investigator recommendation vs **ARCHIVED**.
 - **Lab (`freqtrade-strategy-lab`):** Dual-leg **EnhancedCointPairsStrategy_V01** / **V02** @ **4h**; Phase 0 matrix → **4h** produced multiple **GO** pairs; primary backtest focus **BTC/ETH**. **BTC/PAXG** (tokenized gold vs BTC) is an additional **lab** pair — `config/config_cointpairs_l_phase1_btc_paxg.json`; short perp history (from ~Mar 2025). **Exploratory spreads (2026-04-03):** LINK/ETH, UNI/SOL, XMR/BTC backtested from the deploy repo — see Part 3; **not** added to droplets on these results. Walk-forward CSVs and comparison tables under `user_data/results/`. Palazzi **vol filter** + **spread trailing** exist as flags (`ENABLE_VOL_FILTER`, `ENABLE_SPREAD_TRAIL`) default **off** — lab showed they **reduced** net P&L vs z-reversion + time stop on the tested pair/TF.
-- **Deploy (`freqtrade-coint-pairs-trading`):** Standalone repo on **whitneyjohn61** — **six** Freqtrade processes: **three spreads** (BTC/ETH, BNB/SOL, BTC/SOL) × **V01** (compose profile `v01`) on one DigitalOcean droplet and **V02** (`v02`) on a second. `dry_run` default true in templates; see repo `README.md` and `deploy/README.md`.
+- **Deploy (`freqtrade-coint-pairs-trading`):** Standalone **`whitneyjohn61`** repo — six Freqtrade services (**BTC/ETH, BNB/SOL, BTC/SOL** × **V01**/ **`v02`**) documented for **historical reproducibility**. **Operational default 2026-05-02:** **`docker compose down`** on profiles (droplet billing at operator discretion — not required for PARKED stance).
 - **Versus archived Candidate F:** F failed on **single-leg** exposure and **~0.05 trades/day** on the only GO pair. L is **dual-leg**, **β-weighted stakes**, with **orphan-leg** safeguards; literature layer adds adaptive trailing + vol filter (optional in code).
 
 ### Key Commands (lab — Docker)
@@ -126,7 +127,7 @@ Full F post-mortem: `user_data/info/CointPairsTrading_Deep_Dive.md`.
 
 **Remote:** `https://github.com/whitneyjohn61/freqtrade-coint-pairs-trading`
 
-### 4.2 Topology (implemented)
+### 4.2 Topology (historical layout — forward discontinued 2026-05-02)
 
 | Droplet | Compose profile | Strategies | Host UI ports (→ container 8080) |
 |---------|-----------------|------------|----------------------------------|
@@ -181,6 +182,19 @@ Templates under `config/templates/`; `scripts/generate_api_secrets.py` for JWT/U
 - **Palazzi options** default **off** in backtest where they hurt net P&L — optional for live risk experiments.
 - **V02** β-churn **on** by default (`ENABLE_BETA_STAB_FILTER`) in strategy class.
 
+### 6.3 Forward closure (**2026-05-02**) — co‑investigator recommendation
+
+**Measurements:** **`scripts/droplet_status_from_local.ps1`** (`Import-DotEnv` + SSH to **`v01`** / **`v02`** hosts → remote `droplet_status_remote.sh` → local **`droplet_combined_summary_from_local.py`**). Combined table is authoritative for apples‑to‑apples six‑container totals.
+
+**Final combined snapshot (**UTC **2026-05-02**):**
+- **12** open legs, **17** closed trade rows (SQLite) across **six** instances — **`AlgoTrading_Research_Log.md` §2** (**~50** closed trades minimum for coarse forward read): **not met**.
+- **Total PnL** ≈ **+US$6.56** (closed + open MTM) versus rolled‑up stakes → **~+0.01%** — **economically ambiguous** (“flat”) over the window; contrasts with interim **≈ −1.72%** checkpoint (**2026-04‑18**, `TESTING.md`).
+- **By spread replica:** **BTC/ETH** (**V01** + **V02**) **each ~+4.2% vs stakes** — only pair‑surface aligning with favourable **lab** walk‑forward. **BNB/SOL** (**~−1.5%** vs **~−1.25%**) and **BTC/SOL** (**~−2.0%** each) **dragged** aggregate results.
+
+**ARCHIVE versus keep for later phases:**
+- **Recommendation:** **KEEP for next phases; do NOT move to ARCHIVED.** Rationale — **engineering** validated dual‑leg Freqtrade + ops at scale; **economics** did **not** justify further **standalone** VPS budget on this three‑spread bundle. LAB walk‑forward and Phase 0 artefacts remain materially useful; PARKED **`§4.3`** framing preserves option value for **`§4.5 GatedExecution`** (spread / **z‑score** gate) or a narrower **§6** revival with held‑out pairs and completed **§6.2 Edge Deflation Pass**.
+- **ARCHIVE would only follow** if a future §6 worksheet formally concludes **zero** salvageable discrete signal vs fees + tails — **not** warranted on current evidence alone.
+
 ---
 
 ## Part 7: Related Documents
@@ -188,7 +202,7 @@ Templates under `config/templates/`; `scripts/generate_api_secrets.py` for JWT/U
 | Document | Use |
 |----------|-----|
 | `EnhancedCointPairs_Dev_Plan.md` | Commands, phase gates, file index, deploy Part 6 |
-| `AlgoTrading_Research_Log.md` | Candidate L registry, priority vs J/G |
+| `AlgoTrading_Research_Log.md` | Candidate **L registry** (**PARKED §4.3**), effort allocation **§4.6** |
 | `CointPairsTrading_Deep_Dive.md` | Predecessor F — what not to repeat |
 | `user_data/results/cointpairs_comparison_tables.md` | Numeric backtest recap |
 
@@ -200,3 +214,5 @@ Templates under `config/templates/`; `scripts/generate_api_secrets.py` for JWT/U
 |------|--------|
 | 2026-04-02 | v1 — Deep dive created: research log, dev plan, deploy repo, lab results summary, chat-derived decision notes. |
 | 2026-04-03 | Part 3: LINK/ETH, UNI/SOL, XMR/BTC V01@4h backtest summary (deploy repo); Part 4.3: optional lab reproduction configs. |
+| 2026-05-02 | **Forward deploy discontinued.** Header + Part 6 **§6.3**: final **`droplet_status_from_local`** summary (~**+0.01%** combined; **BTC/ETH** positive, **BNB/SOL** + **BTC/SOL** negative). Registry → **PARKED** (**not ARCHIVED**). Part 4.2 topology labelled historical. |
+

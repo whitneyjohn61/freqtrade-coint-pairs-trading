@@ -1,10 +1,10 @@
 # Enhanced Cointegration Pairs Trading — Development Plan
 ## Candidate L from AlgoTrading Research Log
-## Created: 2026-03-31 | Status: Phase 1 — IN PROGRESS (BTC/ETH @ 4h dual-leg MVP)
+## Created: 2026-03-31 | Status: Phase 1 lab complete · Phase 3 forward **discontinued** (Candidate L **PARKED** per Research Log §4.3, **2026-05-02**)
 
-> **v5.0 (2026-04-17):** Candidate L has **not** been declared to have cleared the multi-stage gate (**§6**) in `AlgoTrading_Research_Log.md` (see **`freqtrade-strategy-lab`**, `user_data/info/`). This deploy repo’s live forward run is a **bounded experiment**; see repo-root **`TESTING.md`** for scope freeze and how to interpret results. Do not use droplet PnL alone to validate Palazzi headline metrics.
+> **v5.0 (2026-04-17) + closure (2026-05-02):** Candidate L remains **outside** ACTIVE — it has **not** cleared **`AlgoTrading_Research_Log.md` §6** (`freqtrade-strategy-lab`). The **`freqtrade-coint-pairs-trading`** six-container DigitalOcean experiment ran **≈ four calendar weeks** and was **stopped by policy**; see repo **`TESTING.md`** and **`EnhancedCointPairs_Deep_Dive.md` §6.3** for numbers. **Co-investigator recommendation: PARK (do not ARCHIVE)** — aggregate forward PnL was **noise (~+0.01% vs sum of stakes, closed + open MTM)** at final snapshot (**17** closed trade rows, **12** open legs — **below §2 ~50** closed-trade bar); **BTC/ETH** replicas **positive**, **BNB/SOL** and **BTC/SOL** replicas **hurt** totals. Preserve code for **§4.5 GatedExecution** optional spread gate or narrowed §6 revival; no further droplet spend until explicit reopen triggers in §4.3.
 >
-> **Forward checkpoint (2026-04-18):** **CONTINUE** — 12 closed / 8 open legs, ~−1.72% aggregate vs stakes; see **`TESTING.md`**.
+> **Forward checkpoints:** **2026-04-18** interim ≈ −1.72%; **2026-05-02** final combined ≈ **+0.01%** — **`TESTING.md`**, **`droplet_status_from_local.ps1`**.
 
 ---
 
@@ -32,7 +32,8 @@ This is Candidate L in our Research Log. A co-developer project running in paral
 - **BNB/SOL deep-dive bundle (preserved):** `user_data/results/cointpairs_bnb_sol_4h_analysis/` — params + config snapshots, `SUMMARY.txt`, Freqtrade `backtest-result-*.zip` (trades export), `RUN_MANIFEST.md` for reproduction. Use for detailed analysis; do not rely on a stray `EnhancedCointPairsStrategy_V02.json` in `strategies/` (removed after snapshot; restore from `strategy_params_snapshot.json` if needed).
 - **Hyperopt V02 (do not pass `--cache` to hyperopt):** `docker compose run --rm freqtrade hyperopt --config /freqtrade/config/config_cointpairs_l_phase1.json --strategy EnhancedCointPairsStrategy_V02 --hyperopt-loss SharpeHyperOptLoss --spaces buy sell --epochs 50 --timerange 20220101-20241231 --min-trades 15`
 - **V01 default vs hyperopt (same script, `--compare --params-json user_data/strategy_params/EnhancedCointPairsStrategy_V01_hyperopt_2026-03-31.json`):** CSV `user_data/results/cointpairs_walk_forward_v01_default_vs_hyperopt.csv`. **Hyperopt params are not robust on the full timerange** (full sample **~−4.3%** vs default **~+25.7%**); use sidecar JSON only with **window-matched** validation, not as global defaults.
-- **Next immediate step:** Dry-run `trade` on VPS (see command below); optional multi-pair expansion; longer hyperopt only after walk-forward review.
+- **Forward deploy (`freqtrade-coint-pairs-trading`):** **Discontinued 2026-05-02** — see **Phase 3** below and **`EnhancedCointPairs_Deep_Dive.md` §6.3**. Containers may remain stopped/`docker compose down` on hosts; reproducibility retained in repo + SQLite backups on droplets if preserved.
+- **Next lab step (when L reopens):** §6.2 Palazzi Edge Deflation Pass + checklist (§4.6 Research Log); then either GatedExecution integration design or narrowed pair-universe Phase 3 charter — **not** open-ended VPS burn.
 - **Hyperopt (2026-03-31):** In-sample `20220101–20241231`, 40 epochs, `buy`+`sell` spaces, `SharpeHyperOptLoss`, `--min-trades 20`. Best epoch (train only): `entry_zscore` 2.89, `ols_window` 133, `zscore_window` 45, `exit_zscore` 0.04, `max_hold_candles` 318 — saved as `user_data/hyperopt_results/EnhancedCointPairsStrategy_V01_best_params_2026-03-31.json`. **Do not** leave a same-named `.json` next to the strategy unless you intend to load it: copy that file to `user_data/strategies/EnhancedCointPairsStrategy_V01.json` to apply, or delete that file to use `DecimalParameter` defaults in code.
 - **OOS sanity (20250101–20260331, with best JSON applied):** ~+4.5% total, PF ~1.11, 30 trades — positive but far below in-sample; treat hyperopt as exploratory until walk-forward confirms.
 - **Blocking issues:** None
@@ -315,6 +316,8 @@ This yields **45 unique pairs** for cointegration screening. Not all will be coi
 - Trade frequency within 30% of backtest
 - Comfortable coexistence with other strategies **only after** confirming margin, rate limits, and ops runbooks — L runs as dedicated compose profiles on the deploy droplet(s), not embedded in the lab `docker-compose.yml`
 
+**Outcome (2026-05-02) — Phase 4 NO-GO; forward stopped:** Operational duration **~4 weeks** satisfied the calendar minimum, but **§2 (~50 closed trades)** and **economics-vs-backtest consistency** gates were **not** met. Aggregate **combined six-instance** snapshot (closed realized + open MTM): **≈ +0.01% vs sum of stakes** (**~+US$6.6** total PnL). **BTC/ETH** (**V01** + **V02**) **each ~+4.2% vs stakes** — only pair-surface resembling lab walk-forward quality. **BNB/SOL** and **BTC/SOL** (**both** profiles) **negative** — dragged portfolio. Candidate L is **PARKED** in `AlgoTrading_Research_Log.md`; this repo remains an **artifacts / reproduction** footprint.
+
 ---
 
 ## Part 4: What Not To Repeat
@@ -451,4 +454,4 @@ J and L are designed to be **uncorrelated and concurrent:**
 ---
 
 *Document maintained by: Claude + co-developer*  
-*Last updated: 2026-04-03 — Documented LINK/ETH, UNI/SOL, XMR/BTC exploratory V01@4h backtests (deploy repo configs); droplet decision: no new instances on these results.*
+*Last updated: 2026-05-02 — Forward deploy discontinued; Candidate L PARKED; Phase 4 NO-GO (see Phase 3). Prior 2026-04-03: LINK/ETH, UNI/SOL, XMR/BTC exploratory configs; droplet expansion declined on those defaults.*
